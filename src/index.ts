@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 
 const getModule = () => {
   let text = process.argv.find(
-    (item) => item.toLowerCase().indexOf('module=') > -1
+    item => item.toLowerCase().indexOf('module=') > -1,
   );
   if (text) {
     let module = text.replace('module=', '');
@@ -17,7 +17,7 @@ const CreateFile = (dir, content) => {
   fs.writeFile(dir, content);
 };
 
-const CreateDir = async (dir) => {
+const CreateDir = async dir => {
   await fs.mkdir(dir, { recursive: true });
 };
 
@@ -29,16 +29,16 @@ const CreateDTOS = () => {
   `;
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/dtos/I${moduleName}DTO.ts`,
-    i_dto_module
+    `./tmp/${moduleName?.toLowerCase()}s/dtos/I${moduleName}DTO.ts`,
+    i_dto_module,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/dtos/ICreate${moduleName}DTO.ts`,
-    i_dto_create_module
+    `./tmp/${moduleName?.toLowerCase()}s/dtos/ICreate${moduleName}DTO.ts`,
+    i_dto_create_module,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/dtos/IUpdate${moduleName}DTO.ts`,
-    i_dto_update_module
+    `./tmp/${moduleName?.toLowerCase()}s/dtos/IUpdate${moduleName}DTO.ts`,
+    i_dto_update_module,
   );
 };
 
@@ -46,7 +46,7 @@ const CreateEntities = () => {
   const entities = `
   import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-  @Entity('${moduleName.toLowerCase()}s')
+  @Entity('${moduleName?.toLowerCase()}s')
   class ${moduleName} {
     @PrimaryGeneratedColumn()
     id: number;
@@ -71,8 +71,8 @@ const CreateEntities = () => {
   `;
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/entities/${moduleName}.ts`,
-    entities
+    `./tmp/${moduleName?.toLowerCase()}s/entities/${moduleName}.ts`,
+    entities,
   );
 };
 
@@ -94,12 +94,12 @@ const CreateRepositories = async () => {
   `;
 
   await CreateDir(
-    `./tmp/${moduleName.toLowerCase()}s/repositories/${moduleName}`
+    `./tmp/${moduleName?.toLowerCase()}s/repositories/${moduleName}`,
   );
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/repositories/${moduleName}/I${moduleName}Repository.ts`,
-    irepositories
+    `./tmp/${moduleName?.toLowerCase()}s/repositories/${moduleName}/I${moduleName}Repository.ts`,
+    irepositories,
   );
 
   const repositories = `
@@ -146,8 +146,8 @@ const CreateRepositories = async () => {
   `;
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/repositories/${moduleName}/${moduleName}Repository.ts`,
-    repositories
+    `./tmp/${moduleName?.toLowerCase()}s/repositories/${moduleName}/${moduleName}Repository.ts`,
+    repositories,
   );
 };
 
@@ -155,22 +155,21 @@ const CreateRouts = () => {
   const index = `import paths from './paths';
   import { RegisterPaths } from '@routes/paths';
   
-  const ${moduleName.toLowerCase()}Routes = RegisterPaths({ paths });
+  const ${moduleName?.toLowerCase()}Routes = RegisterPaths({ paths });
   
-  export { ${moduleName.toLowerCase()}Routes };
+  export { ${moduleName?.toLowerCase()}Routes };
   `;
 
-  CreateFile(`./tmp/${moduleName.toLowerCase()}s/route/index.ts`, index);
+  CreateFile(`./tmp/${moduleName?.toLowerCase()}s/route/index.ts`, index);
 
-  const paths = `import { Authenticated } from '@middleware/Authenticated';
-  import { Create${moduleName}Controller } from '../useCases/create/Create${moduleName}Controller';
+  const paths = `import { Create${moduleName}Controller } from '../useCases/create/Create${moduleName}Controller';
   import { Delete${moduleName}Controller } from '../useCases/delete/Delete${moduleName}Controller';
   import { Find${moduleName}Controller } from '../useCases/find/Find${moduleName}Controller';
   import { Update${moduleName}Controller } from '../useCases/update/Update${moduleName}Controller';
 
   /**
    * @swagger
-   * /${moduleName.toLowerCase()}:
+   * /${moduleName?.toLowerCase()}:
    *      post:
    *          summary:
    *          security:
@@ -201,7 +200,7 @@ const CreateRouts = () => {
   const create${moduleName}Controller = new Create${moduleName}Controller();
   /**
    * @swagger
-   * /${moduleName.toLowerCase()}/{id}:
+   * /${moduleName?.toLowerCase()}/{id}:
    *      put:
    *          summary:
    *          parameters:
@@ -239,7 +238,7 @@ const CreateRouts = () => {
   const update${moduleName}Controller = new Update${moduleName}Controller();
   /**
    * @swagger
-   * /${moduleName.toLowerCase()}/{id}:
+   * /${moduleName?.toLowerCase()}/{id}:
    *      delete:
    *          summary:
    *          parameters:
@@ -265,7 +264,7 @@ const CreateRouts = () => {
   const delete${moduleName}Controller = new Delete${moduleName}Controller();
   /**
    * @swagger
-   * /${moduleName.toLowerCase()}:
+   * /${moduleName?.toLowerCase()}:
    *      get:
    *          summary:
    *          security:
@@ -319,7 +318,7 @@ const CreateRouts = () => {
   export default paths;
   `;
 
-  CreateFile(`./tmp/${moduleName.toLowerCase()}s/route/paths.ts`, paths);
+  CreateFile(`./tmp/${moduleName?.toLowerCase()}s/route/paths.ts`, paths);
 };
 
 const CreateUseCasas = async () => {
@@ -337,7 +336,7 @@ const CreateUseCasas = async () => {
   
       await create${moduleName}UseCase.execute(data);
   
-      return response.status(201).send();
+      return response.status(201).json();
     }
   }
   
@@ -346,31 +345,86 @@ const CreateUseCasas = async () => {
   const createUseCase = `import { inject, injectable } from 'tsyringe';
   import { I${moduleName}Repository } from '../../repositories/${moduleName}/I${moduleName}Repository';
   import { ICreate${moduleName}DTO } from '../../dtos/ICreate${moduleName}DTO';
+  import { sys_erros } from '@config/errors';
+  import { SendError } from 'logs/Honeybadger';
+  import { AppError } from '@config/AppError';
   
   @injectable()
   class Create${moduleName}UseCase {
     constructor(
       @inject('${moduleName}Repository')
-      private ${moduleName.toLowerCase()}Repository: I${moduleName}Repository,
+      private ${moduleName?.toLowerCase()}Repository: I${moduleName}Repository,
     ) {}
   
     async execute(data: ICreate${moduleName}DTO): Promise<void> {
-      await this.${moduleName.toLowerCase()}Repository.create(data);
+      try {
+        await this.${moduleName?.toLowerCase()}Repository.create(data);
+      } catch (err) {
+        SendError(err);
+        throw new AppError(sys_erros.SQL_ERROR, 400);
+      }
+      
     }
   }
   
   export { Create${moduleName}UseCase };
   `;
+  const createUseCaseTeste = `import { describe, expect } from '@jest/globals';
+  import { container } from 'tsyringe';
+  import { Create${moduleName}UseCase } from './Create${moduleName}UseCase';
+  import { getRepository } from 'typeorm';
+  import { ${moduleName} } from '../../entities/${moduleName}';
+  
+  let XXXXX = '';
+  describe('Crete ${moduleName}', () => {
+    afterEach(() => {
+      const ${moduleName?.toLocaleLowerCase()} = getRepository(${moduleName});
+      ${moduleName?.toLocaleLowerCase()}.delete({});
+    });
+  
+    it('should create a new ${moduleName?.toLocaleLowerCase()} when valid', async () => {
+      const create${moduleName}UseCase = container.resolve(Create${moduleName}UseCase);
+      expect(await create${moduleName}UseCase.execute({})).toEqual(
+        undefined,
+      );
+    });
+  
+    it('should create a new user when is not valid XXXXX', async () => {
+      const create${moduleName}UseCase = container.resolve(Create${moduleName}UseCase);
+      try {
+        await create${moduleName}UseCase.execute({});
+      } catch (err) {
+        expect(err.statusCode).toEqual(400);
+      }
+    });
+  
+    it('should create a new ${moduleName?.toLocaleLowerCase()} when is ${moduleName?.toLocaleLowerCase()} already exists', async () => {
+      const ${moduleName?.toLocaleLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLocaleLowerCase()}.save({});
+  
+      const create${moduleName}UseCase = container.resolve(Create${moduleName}UseCase);
+      try {
+        await create${moduleName}UseCase.execute({});
+      } catch (err) {
+        expect(err.statusCode).toEqual(400);
+      }
+    });
+  });
+  `;
 
-  await CreateDir(`./tmp/${moduleName.toLowerCase()}s/useCases/create`);
+  await CreateDir(`./tmp/${moduleName?.toLowerCase()}s/useCases/create`);
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/create/Create${moduleName}Controller.ts`,
-    createController
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/create/Create${moduleName}Controller.ts`,
+    createController,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/create/Create${moduleName}UseCase.ts`,
-    createUseCase
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/create/Create${moduleName}UseCase.ts`,
+    createUseCase,
+  );
+  CreateFile(
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/create/Create${moduleName}UseCase.test.ts`,
+    createUseCaseTeste,
   );
 
   const deleteController = `import { Request, Response } from 'express';
@@ -385,7 +439,7 @@ const CreateUseCasas = async () => {
   
       await delete${moduleName}UseCase.execute(parseInt(id));
   
-      return response.status(200).send();
+      return response.status(200).json();
     }
   }
   
@@ -394,37 +448,75 @@ const CreateUseCasas = async () => {
   const deleteUseCase = `import { inject, injectable } from 'tsyringe';
   import { I${moduleName}Repository } from '../../repositories/${moduleName}/I${moduleName}Repository';
   import { AppError } from '@config/AppError';
+  import { sys_erros } from '@config/errors';
+  import { SendError } from 'logs/Honeybadger';
   
   @injectable()
   class Delete${moduleName}UseCase {
     constructor(
       @inject('${moduleName}Repository')
-      private ${moduleName.toLowerCase()}Repository: I${moduleName}Repository,
+      private ${moduleName?.toLowerCase()}Repository: I${moduleName}Repository,
     ) {}
   
     async execute(id: number): Promise<void> {
-      const ${moduleName}AlreadyNotExists = await this.${moduleName.toLowerCase()}Repository.findById(id);
+      const ${moduleName}Exists = await this.${moduleName?.toLowerCase()}Repository.findById(id);
   
-      if (!${moduleName}AlreadyNotExists) {
-        throw new AppError('${moduleName} already not exists', 404);
+      if (!${moduleName}Exists)  throw new AppError('${moduleName} already not exists', 404);
+      
+      try {
+        await this.${moduleName?.toLowerCase()}Repository.delete(id);
+      } catch (err) {
+        SendError(err);
+        throw new AppError(sys_erros.SQL_ERROR, 400);
       }
-  
-      await this.${moduleName.toLowerCase()}Repository.delete(id);
     }
   }
   
   export { Delete${moduleName}UseCase };
   `;
+  const deleteUseCaseTeste = `import { describe, expect } from '@jest/globals';
+  import { container } from 'tsyringe';
+  import { getRepository } from 'typeorm';
+  import { ${moduleName} } from '../../entities/${moduleName}';
+  import { Delete${moduleName}UseCase } from './Delete${moduleName}UseCase';
+  
+  let id = 0;
+  let XXXXX = '';
+  describe('Delete ${moduleName}', () => {
+    beforeEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      const data = await ${moduleName?.toLowerCase()}.save({});
+      id = data.id;
+    });
+  
+    it('should delete a ${moduleName?.toLowerCase()} when given a valid id', async () => {
+      const delete${moduleName}UseCase = container.resolve(Delete${moduleName}UseCase);
+      expect(await delete${moduleName}UseCase.execute(id)).toEqual(undefined);
+    });
+  
+    it('should throw an error when given an invalid id', async () => {
+      const delete${moduleName}UseCase = container.resolve(Delete${moduleName}UseCase);
+      try {
+        await delete${moduleName}UseCase.execute(123456);
+      } catch (err) {
+        expect(err.statusCode).toEqual(404);
+      }
+    });
+  });`;
 
-  await CreateDir(`./tmp/${moduleName.toLowerCase()}s/useCases/delete`);
+  await CreateDir(`./tmp/${moduleName?.toLowerCase()}s/useCases/delete`);
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/delete/Delete${moduleName}Controller.ts`,
-    deleteController
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/delete/Delete${moduleName}Controller.ts`,
+    deleteController,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/delete/Delete${moduleName}UseCase.ts`,
-    deleteUseCase
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/delete/Delete${moduleName}UseCase.ts`,
+    deleteUseCase,
+  );
+  CreateFile(
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/delete/Delete${moduleName}UseCase.test.ts`,
+    deleteUseCaseTeste,
   );
 
   const findController = `import { Request, Response } from 'express';
@@ -446,31 +538,80 @@ const CreateUseCasas = async () => {
   const findUseCase = `import { I${moduleName}DTO } from '../../dtos/I${moduleName}DTO';
   import { inject, injectable } from 'tsyringe';
   import { I${moduleName}Repository } from '../../repositories/${moduleName}/I${moduleName}Repository';
-  
+  import { SendError } from 'logs/Honeybadger';
+  import { AppError } from '@config/AppError';
+  import { sys_erros } from '@config/errors';
+
   @injectable()
   class Find${moduleName}UseCase {
     constructor(
       @inject('${moduleName}Repository')
-      private ${moduleName.toLowerCase()}Repository: I${moduleName}Repository,
+      private ${moduleName?.toLowerCase()}Repository: I${moduleName}Repository,
     ) {}
   
     async execute(): Promise<I${moduleName}DTO[]> {
-      return await this.${moduleName.toLowerCase()}Repository.find();
+      try {
+        return await this.${moduleName?.toLowerCase()}Repository.find();
+      } catch (err) {
+        SendError(err);
+        throw new AppError(sys_erros.SQL_ERROR, 400);
+      }
     }
   }
   
   export { Find${moduleName}UseCase };
   `;
+  const findUseCaseTeste = `import { describe, expect } from '@jest/globals';
+  import { container } from 'tsyringe';
+  import { getRepository } from 'typeorm';
+  import { ${moduleName} } from '../../entities/${moduleName}';
+  import { Find${moduleName}UseCase } from './Find${moduleName}UseCase';
+  
+  let XXXXX = 'teste@teste.com';
+  
+  describe('Find ${moduleName}', () => {
+    beforeEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLowerCase()}.save({});
+    });
+    afterEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLowerCase()}.delete({});
+    });
+  
+    it('should find all ${moduleName?.toLowerCase()}s', async () => {
+      const find${moduleName}UseCase = container.resolve(Find${moduleName}UseCase);
+  
+      const response = await find${moduleName}UseCase.execute();
+  
+      expect(Array.isArray(response)).toBe(true);
+  
+      response.forEach(${moduleName?.toLowerCase()} => {
+        expect(${moduleName?.toLowerCase()}).toHaveProperty('id');
+        expect(${moduleName?.toLowerCase()}).toHaveProperty('name');
+        expect(${moduleName?.toLowerCase()}).toHaveProperty('email');
+        expect(${moduleName?.toLowerCase()}).toHaveProperty('password');
+        expect(typeof ${moduleName?.toLowerCase()}.id).toBe('number');
+        expect(typeof ${moduleName?.toLowerCase()}.name).toBe('string');
+        expect(typeof ${moduleName?.toLowerCase()}.email).toBe('string');
+        expect(typeof ${moduleName?.toLowerCase()}.password).toBe('string');
+      });
+    });
+  });`;
 
-  await CreateDir(`./tmp/${moduleName.toLowerCase()}s/useCases/find`);
+  await CreateDir(`./tmp/${moduleName?.toLowerCase()}s/useCases/find`);
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/find/Find${moduleName}Controller.ts`,
-    findController
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/find/Find${moduleName}Controller.ts`,
+    findController,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/find/Find${moduleName}UseCase.ts`,
-    findUseCase
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/find/Find${moduleName}UseCase.ts`,
+    findUseCase,
+  );
+  CreateFile(
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/find/Find${moduleName}UseCase.test.ts`,
+    findUseCaseTeste,
   );
 
   const findByIdController = `import { Request, Response } from 'express';
@@ -483,9 +624,9 @@ const CreateUseCasas = async () => {
   
       const findById${moduleName}UseCase = container.resolve(FindById${moduleName}UseCase);
   
-      await findById${moduleName}UseCase.execute(parseInt(id));
+      const res = await findById${moduleName}UseCase.execute(parseInt(id));
   
-      return response.status(200).send();
+      return response.status(200).json(res);
     }
   }
   
@@ -495,37 +636,73 @@ const CreateUseCasas = async () => {
   import { I${moduleName}DTO } from '../../dtos/I${moduleName}DTO';
   import { I${moduleName}Repository } from '../../repositories/${moduleName}/I${moduleName}Repository';
   import { AppError } from '@config/AppError';
+  import { SendError } from 'logs/Honeybadger';
+  import { sys_erros } from '@config/errors';
   
   @injectable()
   class FindById${moduleName}UseCase {
     constructor(
       @inject('${moduleName}Repository')
-      private ${moduleName.toLowerCase()}Repository: I${moduleName}Repository,
+      private ${moduleName?.toLowerCase()}Repository: I${moduleName}Repository,
     ) {}
   
-    async execute(id: number): Promise<I${moduleName}DTO | null> {
-      const ${moduleName}AlreadyNotExists = await this.${moduleName.toLowerCase()}Repository.findById(id);
+    async execute(id: number): Promise<I${moduleName}DTO> {
+      const ${moduleName}Exists = await this.${moduleName?.toLowerCase()}Repository.findById(id);
   
-      if (!${moduleName}AlreadyNotExists) {
-        throw new AppError('${moduleName} already not exists', 404);
+      if (!${moduleName}Exists) throw new AppError('${moduleName} already not exists', 404);
+      
+      try {
+        return await this.${moduleName?.toLowerCase()}Repository.findById(id);
+      } catch (err) {
+        SendError(err);
+        throw new AppError(sys_erros.SQL_ERROR, 400);
       }
-  
-      return await this.${moduleName.toLowerCase()}Repository.findById(id);
+      
     }
   }
   
   export { FindById${moduleName}UseCase };
   `;
+  const findByIdUseCaseTeste = `import { describe, expect } from '@jest/globals';
+  import { container } from 'tsyringe';
+  import { getRepository } from 'typeorm';
+  import { ${moduleName} } from '../../entities/${moduleName}';
+  import { FindById${moduleName}UseCase } from './FindById${moduleName}UseCase';
+  
+  let id = 0;
+  let XXXXX = '';
+  describe('Find ${moduleName} by id', () => {
+    beforeEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLowerCase()}.save({});
+    });
+    afterEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLowerCase()}.delete({});
+    });
+  
+    it('should find ${moduleName?.toLowerCase()}s', async () => {
+      const findById${moduleName}UseCase = container.resolve(FindById${moduleName}UseCase);
+      const response = await findById${moduleName}UseCase.execute(id);
+      expect(response).toHaveProperty('id');
+      expect(typeof response.id).toBe('number');
+    });
+  });
+  `;
 
-  await CreateDir(`./tmp/${moduleName.toLowerCase()}s/useCases/findById`);
+  await CreateDir(`./tmp/${moduleName?.toLowerCase()}s/useCases/findById`);
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/findById/FindById${moduleName}Controller.ts`,
-    findByIdController
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/findById/FindById${moduleName}Controller.ts`,
+    findByIdController,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/findById/FindById${moduleName}UseCase.ts`,
-    findByIdUseCase
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/findById/FindById${moduleName}UseCase.ts`,
+    findByIdUseCase,
+  );
+  CreateFile(
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/findById/FindById${moduleName}UseCase.test.ts`,
+    findByIdUseCaseTeste,
   );
 
   const updateController = `import { Request, Response } from 'express';
@@ -543,7 +720,7 @@ const CreateUseCasas = async () => {
   
       await update${moduleName}UseCase.execute({ id, ...data });
   
-      return response.status(200).send();
+      return response.status(200).json();
     }
   }
   
@@ -553,48 +730,99 @@ const CreateUseCasas = async () => {
   import { I${moduleName}Repository } from '../../repositories/${moduleName}/I${moduleName}Repository';
   import { AppError } from '@config/AppError';
   import { IUpdate${moduleName}DTO } from '../../dtos/IUpdate${moduleName}DTO';
+  import { sys_erros } from '@config/errors';
+  import { SendError } from 'logs/Honeybadger';
   
   @injectable()
   class Update${moduleName}UseCase {
     constructor(
       @inject('${moduleName}Repository')
-      private ${moduleName.toLowerCase()}Repository: I${moduleName}Repository,
+      private ${moduleName?.toLowerCase()}Repository: I${moduleName}Repository,
     ) {}
   
     async execute(data: IUpdate${moduleName}DTO): Promise<void> {
       
-      const ${moduleName}AlreadyNotExists = await this.${moduleName.toLowerCase()}Repository.findById(data.id);
+      const ${moduleName}Exists = await this.${moduleName?.toLowerCase()}Repository.findById(data.id);
   
-      if (!${moduleName}AlreadyNotExists) {
-        throw new AppError('${moduleName} already not exists', 404);
+      if (!${moduleName}Exists) throw new AppError('${moduleName} already not exists', 404);
+      
+      try {
+        await this.${moduleName?.toLowerCase()}Repository.update(data);
+      } catch (err) {
+        SendError(err);
+        throw new AppError(sys_erros.SQL_ERROR, 400);
       }
-  
-      await this.${moduleName.toLowerCase()}Repository.update(data);
+
     }
   }
   
   export { Update${moduleName}UseCase };
   `;
+  const updateUseCaseTeste = `import { describe, expect } from '@jest/globals';
+  import { container } from 'tsyringe';
+  import { getRepository } from 'typeorm';
+  import { ${moduleName} } from '../../entities/${moduleName}';
+  import { Update${moduleName}UseCase } from './Update${moduleName}UseCase';
+  
+  let id = 0;
+  let XXXXX = '';
+  describe('Update ${moduleName}s', () => {
+    beforeEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      const data = await ${moduleName?.toLowerCase()}.save({});
+      id = data.id;
+    });
+    afterEach(async () => {
+      const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
+      await ${moduleName?.toLowerCase()}.delete({});
+    });
+  
+    it('should update a ${moduleName?.toLowerCase()} when valid data is provided', async () => {
+      const update${moduleName}UseCase = container.resolve(Update${moduleName}UseCase);
+  
+      try {
+        await update${moduleName}UseCase.execute({});
+      } catch (err) {
+        expect(err.statusCode).toEqual(400);
+      }
+    });
+  
+    it('should throw an error when ${moduleName?.toLowerCase()} id does not exist', async () => {
+      const update${moduleName}UseCase = container.resolve(Update${moduleName}UseCase);
+  
+      try {
+        await update${moduleName}UseCase.execute({
+          id: 1000000
+        });
+      } catch (err) {
+        expect(err.statusCode).toEqual(404);
+      }
+    });
+  });`;
 
-  await CreateDir(`./tmp/${moduleName.toLowerCase()}s/useCases/update`);
+  await CreateDir(`./tmp/${moduleName?.toLowerCase()}s/useCases/update`);
 
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/update/Update${moduleName}Controller.ts`,
-    updateController
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/update/Update${moduleName}Controller.ts`,
+    updateController,
   );
   CreateFile(
-    `./tmp/${moduleName.toLowerCase()}s/useCases/update/Update${moduleName}UseCase.ts`,
-    updateUseCase
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/update/Update${moduleName}UseCase.ts`,
+    updateUseCase,
+  );
+  CreateFile(
+    `./tmp/${moduleName?.toLowerCase()}s/useCases/update/Update${moduleName}UseCase.test.ts`,
+    updateUseCaseTeste,
   );
 };
 
 const CreateModule = async () => {
   await Promise.all(
-    dirs.map(async (dir) => {
-      await fs.mkdir(`./tmp/${moduleName.toLowerCase()}s/${dir}`, {
+    dirs.map(async dir => {
+      await fs.mkdir(`./tmp/${moduleName?.toLowerCase()}s/${dir}`, {
         recursive: true,
       });
-    })
+    }),
   );
   CreateDTOS();
   CreateEntities();

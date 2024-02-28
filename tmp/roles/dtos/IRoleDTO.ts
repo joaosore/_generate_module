@@ -1,0 +1,1 @@
+interface IRoleDTO {} export { IRoleDTO };

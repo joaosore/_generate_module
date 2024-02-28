@@ -1,0 +1,2 @@
+interface ICreateRoleDTO {}export { ICreateRoleDTO };
+  
