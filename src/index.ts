@@ -586,15 +586,9 @@ const CreateUseCasas = async () => {
   
       expect(Array.isArray(response)).toBe(true);
   
-      response.forEach(${moduleName?.toLowerCase()} => {
-        expect(${moduleName?.toLowerCase()}).toHaveProperty('id');
-        expect(${moduleName?.toLowerCase()}).toHaveProperty('name');
-        expect(${moduleName?.toLowerCase()}).toHaveProperty('email');
-        expect(${moduleName?.toLowerCase()}).toHaveProperty('password');
-        expect(typeof ${moduleName?.toLowerCase()}.id).toBe('number');
-        expect(typeof ${moduleName?.toLowerCase()}.name).toBe('string');
-        expect(typeof ${moduleName?.toLowerCase()}.email).toBe('string');
-        expect(typeof ${moduleName?.toLowerCase()}.password).toBe('string');
+      response.forEach(row => {
+        expect(row).toHaveProperty('id');
+        expect(typeof row.id).toBe('number');
       });
     });
   });`;
@@ -674,7 +668,8 @@ const CreateUseCasas = async () => {
   describe('Find ${moduleName} by id', () => {
     beforeEach(async () => {
       const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
-      await ${moduleName?.toLowerCase()}.save({});
+      const data = await ${moduleName?.toLowerCase()}.save({});
+      id = data.id;
     });
     afterEach(async () => {
       const ${moduleName?.toLowerCase()} = getRepository(${moduleName});
@@ -683,9 +678,9 @@ const CreateUseCasas = async () => {
   
     it('should find ${moduleName?.toLowerCase()}s', async () => {
       const findById${moduleName}UseCase = container.resolve(FindById${moduleName}UseCase);
-      const response = await findById${moduleName}UseCase.execute(id);
-      expect(response).toHaveProperty('id');
-      expect(typeof response.id).toBe('number');
+      const row = await findById${moduleName}UseCase.execute(id);
+      expect(row).toHaveProperty('id');
+      expect(typeof row.id).toBe('number');
     });
   });
   `;
