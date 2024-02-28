@@ -1,2 +1,0 @@
-interface IUpdateRoleDTO {}export { IUpdateRoleDTO };
-  
