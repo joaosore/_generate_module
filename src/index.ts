@@ -54,13 +54,13 @@ const CreateEntities = () => {
     @Column()
     name_col: string;
 
-    @Column({ type: 'datetime', default: () => 'GETDATA()' })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
 
     @Column({
-      type: 'datetime',
-      default: () => 'GETDATA()',
-      onUpdate: 'GETDATA()',
+      type: 'timestamp',
+      default: () => 'CURRENT_TIMESTAMP',
+      onUpdate: 'CURRENT_TIMESTAMP',
     })
     updated_at: Date;
 
@@ -166,6 +166,7 @@ const CreateRouts = () => {
   import { Delete${moduleName}Controller } from '../useCases/delete/Delete${moduleName}Controller';
   import { Find${moduleName}Controller } from '../useCases/find/Find${moduleName}Controller';
   import { Update${moduleName}Controller } from '../useCases/update/Update${moduleName}Controller';
+  import { FindById${moduleName}Controller } from '../useCases/update/FindById${moduleName}Controller';
 
   /**
    * @swagger
@@ -198,6 +199,33 @@ const CreateRouts = () => {
    *                  description: Internal server error
    */
   const create${moduleName}Controller = new Create${moduleName}Controller();
+  /**
+   * @swagger
+   * /${moduleName?.toLowerCase()}/{id}:
+   *      post:
+   *          summary:
+   *          security:
+   *              - bearerAuth: []
+   *          tags:
+   *              - ${moduleName}
+   *          parameters:
+   *               - in: path
+   *                 name: id
+   *                 schema:
+   *                   type: string
+   *                 required: true
+   *                 description: 
+   *          responses:
+   *              201:
+   *                  description: Success
+   *              401:
+   *                  description: Unauthorized
+   *              404:
+   *                  description: Not found
+   *              500:
+   *                  description: Internal server error
+   */
+  const findById${moduleName}Controller = new FindById${moduleName}Controller();
   /**
    * @swagger
    * /${moduleName?.toLowerCase()}/{id}:
@@ -283,13 +311,20 @@ const CreateRouts = () => {
    *                  description: Internal server error
    */
   const find${moduleName}Controller = new Find${moduleName}Controller();
-
+  
   const paths = [
     {
       method: 'GET',
       moduleByName: '${moduleName}',
       url: '',
       handlers: find${moduleName}Controller.handle,
+      middlewares: [],
+    },
+    {
+      method: 'GET',
+      moduleByName: '${moduleName}',
+      url: '/:id',
+      handlers: findById${moduleName}Controller.handle,
       middlewares: [],
     },
     {
